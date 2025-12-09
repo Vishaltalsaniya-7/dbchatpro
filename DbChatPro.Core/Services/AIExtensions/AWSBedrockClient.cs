@@ -1,4 +1,86 @@
-﻿using System.Runtime.CompilerServices;
+﻿// using System;
+// using System.Collections.Generic;
+// using System.Threading;
+// using System.Threading.Tasks;
+// using Amazon.BedrockRuntime;
+// using Amazon.BedrockRuntime.Model;
+// using Microsoft.Extensions.AI;
+
+// public sealed class AWSBedrockClient : IChatClient, IDisposable
+// {
+//     private readonly IAmazonBedrockRuntime _bedrockClient;
+//     private readonly string _modelId;
+
+//     // Constructor
+//     public AWSBedrockClient(IAmazonBedrockRuntime bedrockClient, string modelId)
+//     {
+//         _bedrockClient = bedrockClient ?? throw new ArgumentNullException(nameof(bedrockClient));
+//         _modelId = modelId ?? throw new ArgumentNullException(nameof(modelId));
+//     }
+
+//     public void Dispose()
+//     {
+//         _bedrockClient?.Dispose();
+//     }
+
+//     public async Task<ChatResponse> GetResponseAsync(
+//         IEnumerable<ChatMessage> messages,
+//         ChatOptions? options = null,
+//         CancellationToken cancellationToken = default)
+//     {
+//         var bedRockMessages = new List<Message>();
+
+//         foreach (var message in messages)
+//         {
+//             bedRockMessages.Add(new Message
+//             {
+//                 Role = ConversationRole.User,
+//                 Content = new List<ContentBlock>
+//                 {
+//                     new ContentBlock { Text = message.Text }
+//                 }
+//             });
+//         }
+
+//         var request = new ConverseRequest
+//         {
+//             ModelId = _modelId,
+//             Messages = bedRockMessages
+//         };
+
+//         try
+//         {
+//             var response = await _bedrockClient.ConverseAsync(request, cancellationToken);
+
+//             return new ChatResponse(new[]
+//             {
+//                 new ChatMessage(ChatRole.Assistant, response.Output.Message.Content[0].Text)
+//             });
+//         }
+//         catch (AmazonBedrockRuntimeException e)
+//         {
+//             return new ChatResponse(new[]
+//             {
+//                 new ChatMessage(ChatRole.Assistant, $"ERROR: Can't invoke '{_modelId}'. Reason: {e.Message}")
+//             });
+//         }
+//     }
+
+//     public object? GetService(Type serviceType, object? serviceKey = null)
+//     {
+//         throw new NotImplementedException();
+//     }
+
+//     public IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
+//         IEnumerable<ChatMessage> messages,
+//         ChatOptions? options = null,
+//         CancellationToken cancellationToken = default)
+//     {
+//         throw new NotImplementedException();
+//     }
+// }
+
+using System.Runtime.CompilerServices;
 using Amazon.SecurityToken;
 using Amazon.BedrockRuntime;
 using Amazon.BedrockRuntime.Model;

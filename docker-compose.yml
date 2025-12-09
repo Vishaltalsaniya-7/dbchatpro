@@ -1,0 +1,120 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: dbchatpro-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vishal
+      POSTGRES_PASSWORD: vishal123
+      POSTGRES_DB: dbchatpro
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./dump:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vishal -d dbchatpro"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "4"           
+          memory: "6G"
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_DEBUG=INFO
+      # - OLLAMA_CONTEXT_LENGTH=2048 
+      - OLLAMA_CONTEXT_LENGTH=4096
+      - OLLAMA_KEEP_ALIVE=5m
+      - OLLAMA_LOAD_TIMEOUT=5m
+      - OLLAMA_NUM_THREADS=4  
+
+  dbchatpro:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dbchatpro-app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+    - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5000
+      - ConnectionStrings__DefaultConnection=Host=${DB_HOST};Port=${DB_PORT};Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
+      #Host=postgres;Port=5432;Database=dbchatpro;Username=vishal;Password=vishal123
+      # - AI_PROVIDER=OpenAI
+      # - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - OLLAMA_API_URL=http://ollama:11434
+      - AI_PROVIDER=Ollama
+      # - OLLAMA_MODEL=wizardlm2:7b
+      # - OLLAMA_MODEL=phi3:mini
+    volumes:
+      - ./dataprotection:/root/.aspnet/DataProtection-Keys
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+
+volumes:
+  postgres-data:
+  ollama-data:
+  dataprotection:
+
+
+# version: "3.9"
+
+# services:
+#   postgres:
+#     image: postgres:16
+#     container_name: dbchatpro-postgres
+#     restart: unless-stopped
+#     environment:
+#       POSTGRES_USER: vishal
+#       POSTGRES_PASSWORD: vishal123
+#       POSTGRES_DB: dbchatpro
+#     ports:
+#       - "5432:5432"
+#     volumes:
+#       - postgres-data:/var/lib/postgresql/data
+#       - ./dump:/docker-entrypoint-initdb.d
+#     healthcheck:
+#       test: ["CMD-SHELL", "pg_isready -U vishal -d dbchatpro"]
+#       interval: 10s
+#       timeout: 5s
+#       retries: 5
+
+#   dbchatpro:
+#     build:
+#       context: ./DBChatPro.UI
+#       dockerfile: Dockerfile
+#     container_name: dbchatpro-app
+#     restart: unless-stopped
+#     ports:
+#       - "5000:5000"
+#     environment:
+#       - ASPNETCORE_URLS=http://+:5000
+#       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=dbchatpro;Username=vishal;Password=vishal123
+#       - OPENAI_API_KEY=${OPENAI_API_KEY}
+#     depends_on:
+#       postgres:
+#         condition: service_healthy
+
+# volumes:
+#   postgres-data:
